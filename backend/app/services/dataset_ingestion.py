@@ -14,21 +14,7 @@ import duckdb
 import openpyxl
 
 from app.models.domain_schemas import DuckDBSchema, ColumnSchema, VariableType
-
-
-def infer_basic_variable_type(sql_type: str) -> VariableType:
-    """Basic heuristic for variable typing based on SQL datatypes.
-    
-    Note: Full IBGE typification heuristics will be implemented in Commit 5.
-    This serves as a placeholder to satisfy the ColumnSchema requirement.
-    """
-    sql_type = sql_type.upper()
-    if any(t in sql_type for t in ("INT", "LONG")):
-        return VariableType.QUANTITATIVE_DISCRETE
-    elif any(t in sql_type for t in ("DOUBLE", "FLOAT", "DECIMAL", "REAL", "NUMERIC")):
-        return VariableType.QUANTITATIVE_CONTINUOUS
-    else:
-        return VariableType.QUALITATIVE_NOMINAL
+from app.services.statistics.heuristics import infer_variable_type
 
 
 class DuckDBSandbox:
@@ -91,7 +77,7 @@ class DuckDBSandbox:
             """
             samples = [row[0] for row in self.conn.execute(sample_query).fetchall()]
             
-            var_type = infer_basic_variable_type(sql_type)
+            var_type = infer_variable_type(col_name, sql_type, samples)
             
             columns.append(ColumnSchema(
                 name=col_name,
