@@ -50,6 +50,7 @@ class GeminiProvider(LLMProvider):
 
     Uses the google-genai SDK with structured output (response_mime_type)
     to force the LLM to return JSON that matches our Pydantic schema.
+    Prompt construction is delegated to the prompt_factory module.
     """
 
     def __init__(self) -> None:
@@ -61,8 +62,10 @@ class GeminiProvider(LLMProvider):
         self, schema: DuckDBSchema, user_question: str
     ) -> GeminiSQLPlan:
         """Sends the schema + question to Gemini and parses the structured response."""
-        system_prompt = self._build_system_prompt()
-        user_prompt = self._build_user_prompt(schema, user_question)
+        from app.services.ai.prompt_factory import build_system_prompt, build_user_prompt
+
+        system_prompt = build_system_prompt()
+        user_prompt = build_user_prompt(schema, user_question)
 
         response = self.client.models.generate_content(
             model=self.model,
@@ -77,39 +80,6 @@ class GeminiProvider(LLMProvider):
 
         raw_json = json.loads(response.text)
         return GeminiSQLPlan(**raw_json)
-
-    @staticmethod
-    def _build_system_prompt() -> str:
-        """Returns the system-level instructions that constrain Gemini's behavior."""
-        return (
-            "You are a senior BI analyst embedded in the DataMind BI platform. "
-            "You follow the UFPA/IBGE statistical methodology strictly.\n\n"
-            "RULES:\n"
-            "1. You MUST generate DuckDB-compatible SQL.\n"
-            "2. You MUST NOT perform mathematical calculations yourself — "
-            "delegate ALL math to SQL aggregate functions.\n"
-            "3. If the user asks for a statistically invalid operation "
-            "(e.g., mean of a nominal variable), set is_methodologically_valid=false "
-            "and explain the correction in pedagogical_correction.\n"
-            "4. Always explain your reasoning step-by-step in thought_process.\n"
-            "5. Return valid JSON matching the GeminiSQLPlan schema."
-        )
-
-    @staticmethod
-    def _build_user_prompt(schema: DuckDBSchema, user_question: str) -> str:
-        """Formats the dataset schema and user question into the LLM prompt."""
-        columns_desc = "\n".join(
-            f"  - {col.name} ({col.sql_type}, {col.variable_type.value}): "
-            f"samples = {col.sample_values}"
-            for col in schema.columns
-        )
-        return (
-            f"## Dataset: `{schema.table_name}`\n"
-            f"Total rows: {schema.total_rows}\n"
-            f"Columns:\n{columns_desc}\n\n"
-            f"## User Question\n"
-            f'"{user_question}"'
-        )
 
 
 class MockLLMProvider(LLMProvider):
