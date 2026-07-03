@@ -41,6 +41,18 @@ class CodeInterpreter:
         """
         logger.info(f"Starting Code Interpreter for question: '{user_question}'")
         
+        # ── Pass 0: Guardrail Interception Middleware ────────────────────
+        from app.services.ai.guardrails import intercept_methodological_errors
+        
+        correction = intercept_methodological_errors(schema, user_question)
+        if correction:
+            logger.warning("Query intercepted by deterministic guardrails before LLM call.")
+            return BIQueryResponse(
+                narration=correction,
+                visuals=[],
+                sql_executed=None
+            )
+        
         # ── Pass 1: Ask LLM to generate the SQL Plan ────────────────────
         plan = await self.provider.generate_sql_plan(schema, user_question)
         
