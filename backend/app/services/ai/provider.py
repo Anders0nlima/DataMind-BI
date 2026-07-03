@@ -16,7 +16,7 @@ from google import genai
 from google.genai import types
 
 from app.core.config import get_settings
-from app.models.domain_schemas import DuckDBSchema, GeminiSQLPlan
+from app.models.domain_schemas import BIQueryResponse, DuckDBSchema, GeminiSQLPlan
 
 logger = logging.getLogger(__name__)
 
@@ -81,38 +81,73 @@ class GeminiProvider(LLMProvider):
         raw_json = json.loads(response.text)
         return GeminiSQLPlan(**raw_json)
 
+    async def generate_final_response(
+        self, user_question: str, sql_results: list[dict], plan: GeminiSQLPlan
+    ) -> BIQueryResponse:
+        """Second pass: takes the exact math from DuckDB and generates human text."""
+        
+        # We enforce structured JSON output again
+        system_prompt = (
+            "You are a senior BI analyst. Your job is to narrate the results "
+            "of a SQL query in human Portuguese (pt-BR). You are strictly forbidden "
+            "from changing the numbers. Just present them elegantly."
+        )
+        user_prompt = (
+            f"User Question: {user_question}\n"
+            f"SQL Executed: {plan.sql_query}\n"
+            f"Exact Results from Database: {sql_results}\n"
+        )
+        
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=user_prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                response_mime_type="application/json",
+                response_schema=BIQueryResponse,
+                temperature=0.1,
+            ),
+        )
+        
+        raw_json = json.loads(response.text)
+        # Ensure sql_executed is set for transparency
+        raw_json["sql_executed"] = plan.sql_query
+        return BIQueryResponse(**raw_json)
+
 
 class MockLLMProvider(LLMProvider):
-    """Deterministic mock for offline testing and development.
+    """Deterministic mock for offline testing and development."""
 
-    Returns pre-configured GeminiSQLPlan responses without making
-    any network calls or consuming API tokens.
-    """
-
-    def __init__(self, response: GeminiSQLPlan | None = None) -> None:
-        """Initialize with an optional pre-configured response.
-
-        Args:
-            response: A fixed GeminiSQLPlan to return. If None, a sensible
-                      default valid response is generated automatically.
-        """
-        self._response = response
+    def __init__(
+        self, 
+        plan_response: GeminiSQLPlan | None = None,
+        final_response: BIQueryResponse | None = None
+    ) -> None:
+        self._plan_response = plan_response
+        self._final_response = final_response
 
     async def generate_sql_plan(
         self, schema: DuckDBSchema, user_question: str
     ) -> GeminiSQLPlan:
-        """Returns the pre-configured mock response instantly."""
-        if self._response is not None:
-            return self._response
+        if self._plan_response is not None:
+            return self._plan_response
 
-        # Default: generate a basic COUNT(*) query
         return GeminiSQLPlan(
-            thought_process=(
-                f"The user asked: '{user_question}'. "
-                f"The table '{schema.table_name}' has {schema.total_rows} rows. "
-                "I will generate a simple count query as a default mock response."
-            ),
+            thought_process="Mock thought process.",
             is_methodologically_valid=True,
             pedagogical_correction=None,
             sql_query=f'SELECT COUNT(*) AS total FROM {schema.table_name}',
+        )
+
+    async def generate_final_response(
+        self, user_question: str, sql_results: list[dict], plan: GeminiSQLPlan
+    ) -> BIQueryResponse:
+        
+        if self._final_response is not None:
+            return self._final_response
+            
+        return BIQueryResponse(
+            narration=f"Mock narration for results: {sql_results}",
+            visuals=[],
+            sql_executed=plan.sql_query
         )
