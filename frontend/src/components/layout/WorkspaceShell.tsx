@@ -3,18 +3,21 @@ import { BarChart3, Database, MessageSquare, Settings } from "lucide-react";
 import { DatasetDropzone } from "../sidebar/DatasetDropzone";
 import { SchemaInspector } from "../sidebar/SchemaInspector";
 import { ConversationalBI } from "../chat/ConversationalBI";
+import { GenerativeCanvas, type GenerativeUIPayload } from "../canvas/GenerativeCanvas";
 
 export function WorkspaceShell() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [schema, setSchema] = useState<any>(null);
   const [_datasetPath, setDatasetPath] = useState<string | null>(null);
+  const [visuals, setVisuals] = useState<GenerativeUIPayload[]>([]);
 
   const handleUploadComplete = (data: { dataset_path: string; schema: any }) => {
     setIsUploading(false);
     setUploadError(null);
     setDatasetPath(data.dataset_path);
     setSchema(data.schema);
+    setVisuals([]);
   };
 
   return (
@@ -80,17 +83,7 @@ export function WorkspaceShell() {
         </header>
         
         <div className="flex-1 overflow-y-auto p-8 pt-24">
-          <div className="h-full border border-slate-800/50 rounded-2xl bg-slate-900/30 flex items-center justify-center backdrop-blur-sm shadow-2xl">
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto ring-1 ring-blue-500/20">
-                <BarChart3 className="w-8 h-8 text-blue-400 opacity-80" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Faça o upload de um dataset para gerar relatórios visuais</p>
-                <p className="text-slate-600 text-xs mt-1">Aderência estrita às normas da UFPA/IBGE</p>
-              </div>
-            </div>
-          </div>
+          <GenerativeCanvas visuals={visuals} />
         </div>
       </main>
 
@@ -106,6 +99,7 @@ export function WorkspaceShell() {
         <ConversationalBI 
           datasetPath={_datasetPath}
           datasetSchema={schema}
+          onNewVisuals={setVisuals}
         />
       </aside>
 

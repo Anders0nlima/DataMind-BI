@@ -11,9 +11,10 @@ interface Message {
 interface ConversationalBIProps {
   datasetPath: string | null;
   datasetSchema: any | null;
+  onNewVisuals?: (visuals: any[]) => void;
 }
 
-export function ConversationalBI({ datasetPath, datasetSchema }: ConversationalBIProps) {
+export function ConversationalBI({ datasetPath, datasetSchema, onNewVisuals }: ConversationalBIProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
@@ -78,6 +79,9 @@ export function ConversationalBI({ datasetPath, datasetSchema }: ConversationalB
               content: event.response.narration 
             }
           ]);
+          if (onNewVisuals && event.response.visuals) {
+            onNewVisuals(event.response.visuals);
+          }
           setStreamStatus(null);
           setIsStreaming(false);
         }
