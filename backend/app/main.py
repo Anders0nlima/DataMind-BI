@@ -14,7 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
-from app.api.routes import health
+from app.api.routes import health, analytics
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,7 @@ def create_app() -> FastAPI:
 
     # ── Routes ───────────────────────────────────────────────────────
     app.include_router(health.router, prefix="/api")
+    app.include_router(analytics.router, prefix="/api")
 
     return app
 
