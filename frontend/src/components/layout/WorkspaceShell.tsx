@@ -2,6 +2,7 @@ import { useState } from "react";
 import { BarChart3, Database, MessageSquare, Settings } from "lucide-react";
 import { DatasetDropzone } from "../sidebar/DatasetDropzone";
 import { SchemaInspector } from "../sidebar/SchemaInspector";
+import { ConversationalBI } from "../chat/ConversationalBI";
 
 export function WorkspaceShell() {
   const [isUploading, setIsUploading] = useState(false);
@@ -102,33 +103,10 @@ export function WorkspaceShell() {
           </h2>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col justify-end gap-4">
-          <div className="bg-slate-800/60 rounded-2xl rounded-tl-sm p-4 text-sm text-slate-300 border border-slate-700/50">
-            Olá! Sou seu assistente de BI. Faça o upload de um dataset para começar.
-          </div>
-        </div>
-        
-        <div className="p-4 bg-slate-900 border-t border-slate-800/60">
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder={schema ? "Ex: Qual a média de faturamento?" : "Aguardando dataset..."}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-500 disabled:opacity-50"
-              disabled={!schema}
-            />
-            <button 
-              disabled={!schema}
-              className="absolute right-2 top-2 p-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:hover:bg-blue-600"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </button>
-          </div>
-          <p className="text-[10px] text-slate-500 text-center mt-3">
-            Respostas baseadas puramente no banco de dados DuckDB.
-          </p>
-        </div>
+        <ConversationalBI 
+          datasetPath={_datasetPath}
+          datasetSchema={schema}
+        />
       </aside>
 
     </div>
