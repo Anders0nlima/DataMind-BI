@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+/* 
+  DataMind BI - Design System 
+  Using modern B2B aesthetics (glassmorphism, soft gradients, clean typography)
+*/
+
+@theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-900: #1e3a8a;
+  
+  --color-surface-dark: #0f172a;
+  --color-surface-darker: #020617;
+  
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  :root {
+    background-color: var(--color-surface-darker);
+    color: #e2e8f0;
+    font-family: var(--font-sans);
+  }
+  
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden; /* We handle scrolling inside panels */
+  }
+}
+
+/* Custom Scrollbar for B2B UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
