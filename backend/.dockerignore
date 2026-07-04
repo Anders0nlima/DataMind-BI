@@ -1,0 +1,41 @@
+# ── Python / Build artifacts ──
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Virtual environment ──
+.venv/
+venv/
+env/
+
+# ── Testing ──
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Git ──
+.git/
+.gitignore
+
+# ── Docker (don't send Dockerfile into context recursively) ──
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# ── Docs (not needed in production image) ──
+*.md
+LICENSE
