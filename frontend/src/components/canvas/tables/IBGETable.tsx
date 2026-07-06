@@ -48,14 +48,7 @@ export function IBGETable({ spec }: IBGETableProps) {
                 <th 
                   key={col.accessor_key} 
                   scope="col" 
-                  className={`
-                    px-6 py-4 font-semibold
-                    /* IBGE Rule 3: Top table border & Header bottom border */
-                    border-y-2 border-slate-600
-                    /* IBGE Rule 2: NO vertical borders */
-                    ${idx === 0 ? "pl-2" : ""}
-                    ${idx === spec.columns.length - 1 ? "pr-2" : ""}
-                  `}
+                  className={`px-6 py-4 font-semibold border-y-2 border-slate-600 ${idx === 0 ? "pl-2" : ""} ${idx === spec.columns.length - 1 ? "pr-2" : ""}`}
                 >
                   {col.header}
                 </th>
@@ -67,11 +60,7 @@ export function IBGETable({ spec }: IBGETableProps) {
             {spec.data.map((row, rowIdx) => (
               <tr 
                 key={`row-${rowIdx}`} 
-                className={`
-                  hover:bg-slate-800/30 transition-colors
-                  /* IBGE Rule 3: Bottom-most border only */
-                  ${rowIdx === spec.data.length - 1 ? "border-b-2 border-slate-600" : "border-b border-slate-700/50"}
-                `}
+                className={`hover:bg-slate-800/30 transition-colors ${rowIdx === spec.data.length - 1 ? "border-b-2 border-slate-600" : "border-b border-slate-700/50"}`}
               >
                 {spec.columns.map((col, colIdx) => {
                   const val = row[col.accessor_key];
@@ -80,13 +69,7 @@ export function IBGETable({ spec }: IBGETableProps) {
                   return (
                     <td 
                       key={`${rowIdx}-${col.accessor_key}`}
-                      className={`
-                        px-6 py-3
-                        /* Ensure no vertical borders even on cells */
-                        border-l-0 border-r-0
-                        ${colIdx === 0 ? "pl-2 font-medium text-slate-300" : ""}
-                        ${colIdx === spec.columns.length - 1 ? "pr-2" : ""}
-                      `}
+                      className={`px-6 py-3 border-l-0 border-r-0 ${colIdx === 0 ? "pl-2 font-medium text-slate-300" : ""} ${colIdx === spec.columns.length - 1 ? "pr-2" : ""}`}
                     >
                       {displayVal}
                     </td>

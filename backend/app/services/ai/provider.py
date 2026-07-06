@@ -57,6 +57,10 @@ class GeminiProvider(LLMProvider):
         settings = get_settings()
         self.client = genai.Client(api_key=settings.gemini_api_key)
         self.model = settings.gemini_model
+        
+        # Initialize telemetry globally so it reuses the Langfuse client
+        from app.core.telemetry import LangfuseTelemetry
+        self.telemetry = LangfuseTelemetry.from_env()
 
     async def generate_sql_plan(
         self, schema: DuckDBSchema, user_question: str
@@ -67,16 +71,28 @@ class GeminiProvider(LLMProvider):
         system_prompt = build_system_prompt()
         user_prompt = build_user_prompt(schema, user_question)
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                response_mime_type="application/json",
-                response_schema=GeminiSQLPlan,
-                temperature=0.1,
-            ),
-        )
+        with self.telemetry.trace("generate_sql_plan") as trace:
+            # Forçamos o output em JSON. O schema Pydantic gerado causava o erro additionalProperties,
+            # então injetamos as chaves esperadas diretamente no prompt.
+            user_prompt_with_schema = user_prompt + "\n\nRETURN A VALID JSON OBJECT WITH THESE EXACT KEYS: thought_process (string), is_methodologically_valid (bool), pedagogical_correction (string or null), sql_query (string or null)."
+            
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=user_prompt_with_schema,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                    temperature=0.1,
+                ),
+            )
+            
+            trace.log_generation(
+                model=self.model,
+                input_tokens=response.usage_metadata.prompt_token_count if response.usage_metadata else 0,
+                output_tokens=response.usage_metadata.candidates_token_count if response.usage_metadata else 0,
+                prompt_preview=user_prompt,
+                output_preview=response.text,
+            )
 
         raw_json = json.loads(response.text)
         return GeminiSQLPlan(**raw_json)
@@ -98,16 +114,45 @@ class GeminiProvider(LLMProvider):
             f"Exact Results from Database: {sql_results}\n"
         )
         
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=user_prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                response_mime_type="application/json",
-                response_schema=BIQueryResponse,
-                temperature=0.1,
-            ),
+        user_prompt_with_schema = user_prompt + (
+            "\n\nCRITICAL JSON SCHEMA RULES:\n"
+            "You MUST return a valid JSON object matching this structure EXACTLY:\n"
+            "{\n"
+            "  \"narration\": \"Sua resposta elegante em português (pt-BR).\",\n"
+            "  \"visuals\": [\n"
+            "    {\n"
+            "      \"component_type\": \"CHART\", // MUST BE EXACTLY 'CHART', 'TABLE', or 'METRIC_CARD'. DO NOT use 'bar_chart'.\n"
+            "      \"spec\": {\n"
+            "         \"chart_type\": \"COLUMN\", // MUST BE EXACTLY 'LINE', 'COLUMN', 'HORIZONTAL_BAR', or 'PIE'.\n"
+            "         \"title\": \"Título\",\n"
+            "         \"x_axis_key\": \"nome_da_coluna\",\n"
+            "         \"series\": [{\"name\": \"Legend\", \"data_key\": \"nome_da_coluna_valor\"}],\n"
+            "         \"data\": [] // Put the exact SQL results here\n"
+            "      }\n"
+            "    }\n"
+            "  ],\n"
+            "  \"sql_executed\": null\n"
+            "}\n"
         )
+        
+        with self.telemetry.trace("generate_final_response") as trace:
+            response = self.client.models.generate_content(
+                model=self.model,
+                contents=user_prompt_with_schema,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt,
+                    response_mime_type="application/json",
+                    temperature=0.1,
+                ),
+            )
+            
+            trace.log_generation(
+                model=self.model,
+                input_tokens=response.usage_metadata.prompt_token_count if response.usage_metadata else 0,
+                output_tokens=response.usage_metadata.candidates_token_count if response.usage_metadata else 0,
+                prompt_preview=user_prompt,
+                output_preview=response.text,
+            )
         
         raw_json = json.loads(response.text)
         # Ensure sql_executed is set for transparency
