@@ -6,11 +6,12 @@
 */
 
 @theme {
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-500: #3b82f6;
-  --color-brand-600: #2563eb;
-  --color-brand-900: #1e3a8a;
+  /* Purple Brand from Figma */
+  --color-brand-50: #f5f3ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-900: #4c1d95;
   
   --color-surface-dark: #0f172a;
   --color-surface-darker: #020617;
@@ -20,9 +21,18 @@
 
 @layer base {
   :root {
-    background-color: var(--color-surface-darker);
-    color: #e2e8f0;
+    /* Hardcoded to Dark Mode Base */
+    --bg-color: var(--color-surface-darker);
+    --text-color: #e2e8f0; /* slate-200 */
+    --font-scale: 1rem;
+    --contrast-filter: none;
+    --color-blind-filter: none;
+    
+    background-color: var(--bg-color);
+    color: var(--text-color);
     font-family: var(--font-sans);
+    font-size: var(--font-scale);
+    filter: var(--contrast-filter) var(--color-blind-filter);
   }
   
   body {
@@ -35,7 +45,7 @@
   }
 }
 
-/* Custom Scrollbar for B2B UI */
+/* Custom Scrollbar for B2B UI (Dark Mode) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -49,4 +59,73 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+/* ── PDF Export Image Overrides ── */
+.pdf-export-mode {
+  background: white !important;
+  color: black !important;
+  height: max-content !important;
+  overflow: visible !important;
+}
+
+.pdf-export-mode * {
+  color: black !important;
+  border-color: #cbd5e1 !important;
+}
+
+/* Force Recharts SVG text to be black */
+.pdf-export-mode .recharts-text {
+  fill: black !important;
+}
+
+/* Fix tables */
+.pdf-export-mode table {
+  background: white !important;
+}
+.pdf-export-mode th {
+  background: #f1f5f9 !important;
+  color: black !important;
+}
+.pdf-export-mode td {
+  background: white !important;
+  color: black !important;
+}
+
+/* ── Print / PDF Export ─────────────────────────────────────────── */
+@media print {
+  /* Hide everything except the canvas area */
+  body > #root > * { display: none !important; }
+  #canvas-print-area { display: block !important; }
+
+  /* Reset background to white for readability */
+  #canvas-print-area {
+    background: white !important;
+    color: black !important;
+    padding: 24px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Print header */
+  #print-header {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #8b5cf6;
+  }
+
+  /* Force chart/table elements to be visible */
+  #canvas-print-area * {
+    color: black !important;
+    border-color: #e2e8f0 !important;
+    background: white !important;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 20mm;
+    size: A4 portrait;
+  }
 }

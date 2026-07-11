@@ -1,3 +1,5 @@
+import { useConfigStore } from '../../../store/useConfigStore';
+
 export interface TableColumnDef {
   header: string;
   accessor_key: string;
@@ -28,6 +30,9 @@ interface IBGETableProps {
  * 4. Source citation at the footer.
  */
 export function IBGETable({ spec }: IBGETableProps) {
+  const { normaEstatistica, casasDecimais, separadorDecimal } = useConfigStore();
+  const showVerticalBorders = normaEstatistica === 'abnt';
+
   return (
     <div className="w-full flex flex-col items-center my-6 text-slate-200">
       
@@ -48,7 +53,7 @@ export function IBGETable({ spec }: IBGETableProps) {
                 <th 
                   key={col.accessor_key} 
                   scope="col" 
-                  className={`px-6 py-4 font-semibold border-y-2 border-slate-600 ${idx === 0 ? "pl-2" : ""} ${idx === spec.columns.length - 1 ? "pr-2" : ""}`}
+                  className={`px-6 py-4 font-semibold border-y-2 border-slate-600 ${idx === 0 ? "pl-2" : ""} ${idx === spec.columns.length - 1 ? "pr-2" : ""} ${showVerticalBorders && idx !== 0 ? "border-l border-slate-700" : ""}`}
                 >
                   {col.header}
                 </th>
@@ -64,12 +69,19 @@ export function IBGETable({ spec }: IBGETableProps) {
               >
                 {spec.columns.map((col, colIdx) => {
                   const val = row[col.accessor_key];
-                  const displayVal = typeof val === "number" ? val.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) : val;
+                  
+                  let displayVal = val;
+                  if (typeof val === "number") {
+                    displayVal = val.toLocaleString(separadorDecimal === 'virgula' ? 'pt-BR' : 'en-US', { 
+                      minimumFractionDigits: casasDecimais,
+                      maximumFractionDigits: casasDecimais 
+                    });
+                  }
                   
                   return (
                     <td 
                       key={`${rowIdx}-${col.accessor_key}`}
-                      className={`px-6 py-3 border-l-0 border-r-0 ${colIdx === 0 ? "pl-2 font-medium text-slate-300" : ""} ${colIdx === spec.columns.length - 1 ? "pr-2" : ""}`}
+                      className={`px-6 py-3 ${showVerticalBorders && colIdx !== 0 ? "border-l border-slate-700/50" : "border-l-0"} border-r-0 ${colIdx === 0 ? "pl-2 font-medium text-slate-300" : ""} ${colIdx === spec.columns.length - 1 ? "pr-2" : ""}`}
                     >
                       {displayVal}
                     </td>
