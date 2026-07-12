@@ -1,10 +1,11 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Database, MessageSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { LeftSidebar } from "../sidebar/LeftSidebar";
 import { ConversationalBI, type ConversationalBIRef } from "../chat/ConversationalBI";
 import { GenerativeCanvas } from "../canvas/GenerativeCanvas";
 import { exportToXLSX, exportToPDF } from "../../utils/exportUtils";
 import { useChatStore } from "../../store/useChatStore";
+import { MethodologyModal } from "../shared/MethodologyModal";
 
 type PanelView = 'both' | 'canvas' | 'chat';
 
@@ -37,6 +38,7 @@ export function WorkspaceShell() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isBackendOnline, setIsBackendOnline] = useState(false);
 
   const { chats, activeChatId, setDataset, setVisuals, createFolder, createChat } = useChatStore();
   
@@ -48,6 +50,21 @@ export function WorkspaceShell() {
   const chatRef = useRef<ConversationalBIRef>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [panelView, setPanelView] = useState<PanelView>('both');
+
+  // Backend Health Check
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/health");
+        setIsBackendOnline(res.ok);
+      } catch {
+        setIsBackendOnline(false);
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAnalysisClick = (prompt: string) => {
     if (chatRef.current) chatRef.current.sendQuery(prompt);
@@ -297,7 +314,14 @@ export function WorkspaceShell() {
                     </button>
                   </div>
                 )}
-                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <div 
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    isBackendOnline 
+                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
+                      : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]'
+                  }`}
+                  title={isBackendOnline ? "Backend Conectado" : "Backend Desconectado"}
+                ></div>
               </div>
             </div>
 

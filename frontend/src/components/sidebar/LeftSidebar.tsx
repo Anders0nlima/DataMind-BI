@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { 
   BarChart2, TrendingUp, Table2, Search, Scale,
-  FileText, FileSpreadsheet, Database
+  FileText, FileSpreadsheet, HelpCircle
 } from "lucide-react";
 import { useConfigStore } from "../../store/useConfigStore";
 import { FolderExplorer } from "./FolderExplorer";
@@ -20,7 +20,7 @@ interface LeftSidebarProps {
   onExport: (type: 'pdf' | 'xlsx') => void;
 }
 
-type TabType = 'ferramentas' | 'config' | 'historico';
+type TabType = 'ferramentas' | 'config' | 'historico' | 'pastas';
 
 const QUICK_ANALYSES = [
   {
@@ -61,7 +61,7 @@ export function LeftSidebar({
   onAnalysisClick, onExport,
 }: LeftSidebarProps) {
   const [activeTab, setActiveTab] = useState<TabType>('ferramentas');
-  const { normaEstatistica, casasDecimais, separadorDecimal, setNormaEstatistica, setCasasDecimais, setSeparadorDecimal } = useConfigStore();
+  const { normaEstatistica, casasDecimais, separadorDecimal, setNormaEstatistica, setCasasDecimais, setSeparadorDecimal, setMethodologyOpen } = useConfigStore();
 
   return (
     <div className="flex flex-col h-full w-full bg-slate-900 border-r border-slate-800">
@@ -249,6 +249,17 @@ export function LeftSidebar({
                   </button>
                 </div>
               </div>
+
+              <div className="pt-4 border-t border-slate-800">
+                <button 
+                  onClick={() => setMethodologyOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors text-sm font-medium"
+                >
+                  <HelpCircle className="w-4 h-4 text-brand-400" />
+                  Privacidade e Metodologia
+                </button>
+              </div>
+
             </div>
           </div>
         )}
@@ -257,9 +268,12 @@ export function LeftSidebar({
       
       {/* Footer Info */}
       <div className="p-4 border-t border-slate-800 text-center shrink-0">
-        <span className="text-[10px] text-slate-400 uppercase tracking-widest">
-          Respostas baseadas em DuckDB · UFPA/IBGE
-        </span>
+        <button 
+          onClick={() => setMethodologyOpen(true)}
+          className="text-[10px] text-slate-400 hover:text-brand-400 hover:underline uppercase tracking-widest transition-colors focus:outline-none"
+        >
+          Processamento Local · UFPA/IBGE
+        </button>
       </div>
 
     </div>

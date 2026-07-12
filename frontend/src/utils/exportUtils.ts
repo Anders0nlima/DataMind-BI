@@ -143,7 +143,7 @@ export async function exportToPDF(): Promise<void> {
     // ── Footer ──
     pdf.setFontSize(7);
     pdf.setTextColor(148, 163, 184);
-    pdf.text("Respostas baseadas em DuckDB · UFPA/IBGE", marginLR, pdfH - 5);
+    pdf.text("Processamento via DuckDB | Padrões metodológicos baseados em UFPA/IBGE", marginLR, pdfH - 5);
 
     // ── Download ──
     const now = new Date();

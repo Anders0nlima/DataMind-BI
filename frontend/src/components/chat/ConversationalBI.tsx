@@ -207,7 +207,13 @@ export const ConversationalBI = forwardRef<ConversationalBIRef, ConversationalBI
           </button>
         </div>
         <p className="text-[10px] text-slate-500 text-center mt-3">
-          Respostas baseadas puramente no banco de dados DuckDB.
+          O processamento é local (DuckDB) e não envia dados para a IA.{' '}
+          <button 
+            onClick={() => useConfigStore.getState().setMethodologyOpen(true)}
+            className="text-brand-400 hover:text-brand-300 hover:underline transition-colors focus:outline-none"
+          >
+            Saiba como funciona
+          </button>
         </p>
       </div>
     </>
