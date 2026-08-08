@@ -1,6 +1,7 @@
 import { DynamicChart, type GenerativeChartSpec } from "./charts/DynamicChart";
 import { IBGETable, type IBGETableSpec } from "./tables/IBGETable";
 import { BarChart3 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export interface GenerativeUIPayload {
   component_type: "CHART" | "TABLE" | "METRIC_CARD";
@@ -51,17 +52,29 @@ export function GenerativeCanvas({ visuals, isGenerating, hasDataset }: Generati
       {visuals.map((visual, idx) => {
         if (visual.component_type === "CHART") {
           return (
-            <div key={`visual-${idx}`} className="w-full">
+            <motion.div 
+              key={`visual-${idx}`} 
+              className="w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22, delay: idx * 0.1 }}
+            >
               <DynamicChart spec={visual.spec as GenerativeChartSpec} />
-            </div>
+            </motion.div>
           );
         }
         
         if (visual.component_type === "TABLE") {
           return (
-            <div key={`visual-${idx}`} className="w-full">
+            <motion.div 
+              key={`visual-${idx}`} 
+              className="w-full"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 22, delay: idx * 0.1 }}
+            >
               <IBGETable spec={visual.spec as IBGETableSpec} />
-            </div>
+            </motion.div>
           );
         }
 

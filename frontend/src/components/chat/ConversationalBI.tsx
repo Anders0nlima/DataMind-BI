@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { ArrowRight, Bot, User, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { sendChatQuerySSE, type SSEEvent } from "../../services/sseClient";
 import { useConfigStore } from "../../store/useConfigStore";
 import { useChatStore } from "../../store/useChatStore";
@@ -122,9 +123,13 @@ export const ConversationalBI = forwardRef<ConversationalBIRef, ConversationalBI
   return (
     <>
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar bg-slate-950">
+        <AnimatePresence initial={false}>
         {messages.map((msg) => (
-          <div 
-            key={msg.id} 
+          <motion.div 
+            key={msg.id}
+            initial={{ opacity: 0, y: 12, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24 }}
             className={`flex gap-3 max-w-[95%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}
           >
             <div className={`
@@ -141,12 +146,20 @@ export const ConversationalBI = forwardRef<ConversationalBIRef, ConversationalBI
             `}>
               {msg.content}
             </div>
-          </div>
+          </motion.div>
         ))}
+        </AnimatePresence>
         
         {/* Streaming Status Indicator */}
+        <AnimatePresence>
         {isStreaming && streamStatus && (
-          <div className="flex gap-3 max-w-[95%]">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ type: "spring", stiffness: 300, damping: 24 }}
+            className="flex gap-3 max-w-[95%]"
+          >
             <div className="w-7 h-7 rounded-lg bg-brand-900/30 flex items-center justify-center shrink-0 mt-1">
               <Bot className="w-4 h-4 text-brand-400" />
             </div>
@@ -154,8 +167,9 @@ export const ConversationalBI = forwardRef<ConversationalBIRef, ConversationalBI
               <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-500" />
               {streamStatus}
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
       

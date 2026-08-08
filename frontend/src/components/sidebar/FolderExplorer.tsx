@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Folder, MessageSquare, Plus, MoreHorizontal, X, Edit2, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useChatStore } from '../../store/useChatStore';
 
 export function FolderExplorer() {
@@ -95,7 +96,13 @@ export function FolderExplorer() {
           const folderChats = chats.filter(c => c.folderId === folder.id);
 
           return (
-            <div key={folder.id} className="space-y-1">
+            <motion.div 
+              key={folder.id} 
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+              className="space-y-1"
+            >
               
               {/* Folder Header */}
               <div 
@@ -156,14 +163,31 @@ export function FolderExplorer() {
               </div>
 
               {/* Chats List (if expanded) */}
+              <AnimatePresence initial={false}>
               {isExpanded && (
-                <div className="pl-6 space-y-0.5">
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                  className="pl-6 space-y-0.5 overflow-hidden"
+                >
                   {folderChats.length === 0 ? (
-                    <div className="text-xs text-slate-500 italic py-1 pl-2">Vazio</div>
+                    <motion.div 
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.05 * 0 }}
+                      className="text-xs text-slate-500 italic py-1 pl-2"
+                    >
+                      Vazio
+                    </motion.div>
                   ) : (
-                    folderChats.map(chat => (
-                      <div 
+                    folderChats.map((chat, chatIdx) => (
+                      <motion.div 
                         key={chat.id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 24, delay: chatIdx * 0.05 }}
                         onClick={() => setActiveChat(chat.id)}
                         className={`group flex items-center justify-between p-1.5 pl-2 rounded-lg cursor-pointer transition-colors border ${
                           activeChatId === chat.id 
@@ -213,12 +237,13 @@ export function FolderExplorer() {
                             </div>
                           </>
                         )}
-                      </div>
+                      </motion.div>
                     ))
                   )}
-                </div>
+                </motion.div>
               )}
-            </div>
+              </AnimatePresence>
+            </motion.div>
           );
         })}
 

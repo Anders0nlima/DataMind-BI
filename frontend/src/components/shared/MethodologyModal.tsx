@@ -1,15 +1,30 @@
 import React from 'react';
 import { X, ShieldCheck, Calculator, BookOpen } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useConfigStore } from '../../store/useConfigStore';
 
 export function MethodologyModal() {
   const { isMethodologyOpen, setMethodologyOpen } = useConfigStore();
 
-  if (!isMethodologyOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]">
+    <AnimatePresence>
+    {isMethodologyOpen && (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+      onClick={() => setMethodologyOpen(false)}
+    >
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.92, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 26 }}
+        className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-800 shrink-0">
@@ -82,7 +97,9 @@ export function MethodologyModal() {
           </button>
         </div>
 
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+    )}
+    </AnimatePresence>
   );
 }
